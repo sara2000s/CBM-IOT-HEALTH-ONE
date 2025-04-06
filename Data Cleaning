@@ -1,0 +1,63 @@
+#  کتابخانه‌های مورد نیاز
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
+# مسیر فایل‌های داده
+glucose_file_path = r"D:\سارا\ترم 3 دانشگاه قم\فصل سوم و چهارم پایان نامه 1\diabetes.csv"
+heart_rate_file_path = r"D:\سارا\ترم 3 دانشگاه قم\فصل سوم و چهارم پایان نامه 1\mitbih_test.csv"
+
+#  تابع پیش‌پردازش داده‌ها
+def preprocess_data(file_path, output_file_path):
+    """Load, clean, and normalize data"""
+    try:
+        # بارگذاری داده‌ها
+        data = pd.read_csv(file_path)
+        
+        # 1. شناسایی داده‌های گمشده
+        print(f"\nبررسی مقادیر گمشده برای فایل {file_path}:")
+        print(data.isnull().sum())
+
+        # 2. حذف داده‌های گمشده
+        data = data.dropna()
+        print(f"\nپس از حذف داده‌های گمشده از فایل {file_path}:")
+        print(data.info())
+
+        # 3. شناسایی مقادیر نامعتبر (مثلاً اعداد منفی در ویژگی‌های غیرمنطقی)
+        invalid_rows = data[(data < 0).any(axis=1)]
+        print(f"\nمقادیر نامعتبر در فایل {file_path}:")
+        print(invalid_rows)
+
+        # 4. حذف داده‌های نامعتبر
+        data = data[(data >= 0).all(axis=1)]
+        print(f"\nپس از حذف داده‌های نامعتبر از فایل {file_path}:")
+        print(data.info())
+
+        # 5. نرمال‌سازی داده‌ها با استفاده از Min-Max Scaler
+        scaler = MinMaxScaler()
+
+        # فقط ستون‌های عددی را نرمال‌سازی می‌کنیم
+        numeric_cols = data.select_dtypes(include=[np.number]).columns
+        data[numeric_cols] = scaler.fit_transform(data[numeric_cols])
+
+        print(f"\nپس از نرمال‌سازی داده‌ها در فایل {file_path}:")
+        print(data.head())
+
+        # ذخیره داده‌های پاکسازی و نرمال‌سازی شده
+        data.to_csv(output_file_path, index=False)
+        print(f"\nداده‌های پاکسازی و نرمال‌سازی شده در فایل '{output_file_path}' ذخیره شدند.")
+
+    except Exception as e:
+        print(f"خطا در پردازش فایل {file_path}: {e}")
+
+# پردازش فایل diabetes.csv
+preprocess_data(
+    glucose_file_path,
+    r"D:\سارا\ترم 3 دانشگاه قم\فصل سوم و چهارم پایان نامه 1\cleaned_normalized_diabetes.csv"
+)
+
+# پردازش فایل mitbih_test.csv
+preprocess_data(
+    heart_rate_file_path,
+    r"D:\سارا\ترم 3 دانشگاه قم\فصل سوم و چهارم پایان نامه 1\cleaned_normalized_mitbih_test.csv"
+)
